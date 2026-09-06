@@ -11,21 +11,42 @@ import { listServices } from '../api/services';
 import { listUsers } from '../api/users';
 import type { OnCallShiftDto, OnCallUserDto, ServiceSummaryDto, UserSummaryDto } from '../api/types';
 
-/** A datetime-local input has no zone, and the API reads an offsetless instant as UTC. */
+/**
+ * Everything on this page is in the viewer's own timezone. "Am I on call tonight?" is a
+ * local question, and the roster already rendered local times through toLocaleString — the
+ * inputs previously claimed UTC, so a shift typed as 09:00 came back reading 12:00.
+ */
+const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+/** IANA ids contain a region, which excludes bare values like "UTC" that the API rejects. */
+const ianaTimeZone = browserTimeZone.includes('/') ? browserTimeZone : undefined;
+
+/** A datetime-local input wants local wall-clock, which toISOString will not give. */
+function toInputValue(date: Date): string {
+  const localMs = date.getTime() - date.getTimezoneOffset() * 60_000;
+  return new Date(localMs).toISOString().slice(0, 16);
+}
+
+/** The input has no offset, so the browser reads it as local — exactly what is wanted. */
 function toUtcIsoString(localInputValue: string): string {
-  return `${localInputValue}:00Z`;
+  return new Date(localInputValue).toISOString();
 }
 
 function defaultShiftStart(): string {
-  const now = new Date();
-  now.setUTCMinutes(0, 0, 0);
-  return now.toISOString().slice(0, 16);
+  const start = new Date();
+  start.setMinutes(0, 0, 0);
+  return toInputValue(start);
 }
 
-function addHours(isoMinutes: string, hours: number): string {
-  const date = new Date(`${isoMinutes}:00Z`);
-  date.setUTCHours(date.getUTCHours() + hours);
-  return date.toISOString().slice(0, 16);
+function addHours(localInputValue: string, hours: number): string {
+  const date = new Date(localInputValue);
+  date.setHours(date.getHours() + hours);
+  return toInputValue(date);
+}
+
+function asUtcLabel(localInputValue: string): string {
+  const date = new Date(localInputValue);
+  return Number.isNaN(date.getTime()) ? '—' : date.toISOString().slice(0, 16).replace('T', ' ');
 }
 
 export function OnCallPage() {
@@ -38,8 +59,8 @@ export function OnCallPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [userId, setUserId] = useState('');
-  const [startUtc, setStartUtc] = useState(defaultShiftStart);
-  const [endUtc, setEndUtc] = useState(() => addHours(defaultShiftStart(), 24));
+  const [startLocal, setStartLocal] = useState(defaultShiftStart);
+  const [endLocal, setEndLocal] = useState(() => addHours(defaultShiftStart(), 24));
 
   useEffect(() => {
     listServices()
@@ -81,8 +102,9 @@ export function OnCallPage() {
       await createOnCallShift({
         serviceId,
         userId,
-        startUtc: toUtcIsoString(startUtc),
-        endUtc: toUtcIsoString(endUtc),
+        startUtc: toUtcIsoString(startLocal),
+        endUtc: toUtcIsoString(endLocal),
+        timeZoneId: ianaTimeZone,
       });
       refresh();
     } catch (err) {
@@ -149,20 +171,20 @@ export function OnCallPage() {
           ))}
         </select>
         <label>
-          From (UTC){' '}
+          From{' '}
           <input
             type="datetime-local"
-            value={startUtc}
-            onChange={(e) => setStartUtc(e.target.value)}
+            value={startLocal}
+            onChange={(e) => setStartLocal(e.target.value)}
             required
           />
         </label>
         <label>
-          To (UTC){' '}
+          To{' '}
           <input
             type="datetime-local"
-            value={endUtc}
-            onChange={(e) => setEndUtc(e.target.value)}
+            value={endLocal}
+            onChange={(e) => setEndLocal(e.target.value)}
             required
           />
         </label>
@@ -171,8 +193,9 @@ export function OnCallPage() {
         </button>
       </form>
       <p className="muted">
-        Times are UTC. The end is exclusive, so a shift ending at 08:00 hands over cleanly to
-        one starting at 08:00 — they may touch, but may not overlap.
+        Times are in your timezone ({browserTimeZone}) — {asUtcLabel(startLocal)} to{' '}
+        {asUtcLabel(endLocal)} UTC. The end is exclusive, so a shift ending at 08:00 hands over
+        cleanly to one starting at 08:00 — they may touch, but may not overlap.
       </p>
 
       <h3>Roster</h3>
@@ -183,8 +206,8 @@ export function OnCallPage() {
           <thead>
             <tr>
               <th>Who</th>
-              <th>From (UTC)</th>
-              <th>To (UTC)</th>
+              <th>From</th>
+              <th>To</th>
               <th>Zone</th>
               <th>Actions</th>
             </tr>
