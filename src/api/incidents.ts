@@ -1,10 +1,23 @@
 import { apiClient } from './client';
-import type { IncidentSeverity, IncidentSummaryDto, PagedResult } from './types';
+import type {
+  IncidentDetailDto,
+  IncidentSeverity,
+  IncidentSummaryDto,
+  PagedResult,
+} from './types';
 
+// A service's incidents are a sub-collection of that service, which leaves
+// /api/incidents/{id} free for the incident itself.
 export function listIncidents(serviceId: string, page = 1, pageSize = 20) {
   return apiClient
-    .get<PagedResult<IncidentSummaryDto>>(`/api/incidents/${serviceId}`, { params: { page, pageSize } })
+    .get<PagedResult<IncidentSummaryDto>>(`/api/services/${serviceId}/incidents`, {
+      params: { page, pageSize },
+    })
     .then((r) => r.data);
+}
+
+export function getIncidentDetail(incidentId: string) {
+  return apiClient.get<IncidentDetailDto>(`/api/incidents/${incidentId}`).then((r) => r.data);
 }
 
 export function createIncident(serviceId: string, title: string, severity: IncidentSeverity, rawPayload?: string) {

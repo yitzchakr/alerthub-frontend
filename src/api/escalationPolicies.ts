@@ -1,5 +1,10 @@
 import { apiClient } from './client';
-import type { EscalationPolicyDetailDto, EscalationPolicySummaryDto, UserRole } from './types';
+import type {
+  EscalationPolicyDetailDto,
+  EscalationPolicySummaryDto,
+  EscalationTargetDto,
+  UserRole,
+} from './types';
 
 export function listEscalationPolicies() {
   return apiClient.get<EscalationPolicySummaryDto[]>('/api/escalation-policies/').then((r) => r.data);
@@ -36,5 +41,18 @@ export function addAssignment(
       `/api/escalation-policies/${policyId}/tiers/${tierId}/assignments`,
       assignment,
     )
+    .then((r) => r.data);
+}
+
+/**
+ * The people a tier would actually page, for a given service at a given moment. An empty
+ * result means the tier is configured but currently reaches nobody — which is the whole
+ * reason to be able to ask before an incident does it for you.
+ */
+export function getTierTargets(policyId: string, tierId: string, serviceId: string, at?: string) {
+  return apiClient
+    .get<EscalationTargetDto[]>(`/api/escalation-policies/${policyId}/tiers/${tierId}/targets`, {
+      params: { serviceId, ...(at ? { at } : {}) },
+    })
     .then((r) => r.data);
 }

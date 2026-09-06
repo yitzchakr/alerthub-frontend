@@ -131,7 +131,9 @@ export function IncidentsPage() {
           <tbody>
             {incidents.map((incident) => (
               <tr key={incident.id}>
-                <td>{incident.title}</td>
+                <td>
+                  <Link to={`/incidents/${incident.id}`}>{incident.title}</Link>
+                </td>
                 <td>{IncidentSeverityLabel[incident.severity]}</td>
                 <td>{IncidentStatusLabel[incident.status]}</td>
                 <td>{new Date(incident.createdAt).toLocaleString()}</td>

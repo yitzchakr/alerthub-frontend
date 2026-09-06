@@ -9,6 +9,7 @@ export function Layout() {
       <header className="app-header">
         <nav>
           <NavLink to="/services">Services</NavLink>
+          <NavLink to="/on-call">On-call</NavLink>
           <NavLink to="/escalation-policies">Escalation Policies</NavLink>
         </nav>
         <div className="app-user">

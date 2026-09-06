@@ -208,3 +208,114 @@ a {
   display: flex;
   gap: 6px;
 }
+
+/* --- incident detail and on-call --- */
+
+.muted {
+  color: color-mix(in srgb, var(--text) 60%, transparent);
+  font-weight: 400;
+}
+
+.fact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.fact-grid dt {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: color-mix(in srgb, var(--text) 60%, transparent);
+}
+
+.fact-grid dd {
+  margin: 2px 0 0;
+  color: var(--text-h);
+}
+
+/* Three states worth telling apart at a glance: covered, a gap, and out of tiers. */
+.banner-ok,
+.banner-warn,
+.banner-danger {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border-left: 3px solid;
+}
+
+.banner-ok {
+  background: color-mix(in srgb, #16a34a 10%, var(--panel-bg));
+  border-color: #16a34a;
+}
+
+.banner-warn {
+  background: color-mix(in srgb, #d97706 12%, var(--panel-bg));
+  border-color: #d97706;
+}
+
+.banner-danger {
+  background: color-mix(in srgb, var(--error) 12%, var(--panel-bg));
+  border-color: var(--error);
+}
+
+.tier-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tier {
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.tier-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.recipient-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+}
+
+.recipient-list li {
+  padding: 3px 0;
+}
+
+.pill {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+
+.pill-quiet {
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  color: color-mix(in srgb, var(--text) 80%, transparent);
+}
+
+.pill-warn {
+  background: color-mix(in srgb, #d97706 18%, transparent);
+  color: #b45309;
+}
+
+.inline-form label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
