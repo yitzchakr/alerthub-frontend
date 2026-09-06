@@ -21,6 +21,12 @@ export const UserRole = {
 } as const;
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
+export const UserRoleLabel: Record<UserRole, string> = {
+  [UserRole.Admin]: 'Admin',
+  [UserRole.Responder]: 'Responder',
+  [UserRole.Viewer]: 'Viewer',
+};
+
 export const IncidentSeverityLabel: Record<IncidentSeverity, string> = {
   [IncidentSeverity.P1_Critical]: 'P1 - Critical',
   [IncidentSeverity.P2_High]: 'P2 - High',
@@ -109,6 +115,8 @@ export interface EscalationPolicySummaryDto {
 export interface EscalationAssignmentDto {
   id: string;
   userId?: string | null;
+  userDisplayName?: string | null;
+  userEmail?: string | null;
   role?: UserRole | null;
   useOnCallSchedule: boolean;
 }

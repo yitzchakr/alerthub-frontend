@@ -1,7 +1,20 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { addAssignment, addTier, getEscalationPolicy } from '../api/escalationPolicies';
-import type { EscalationPolicyDetailDto } from '../api/types';
+import { listUsers } from '../api/users';
+import { UserRoleLabel } from '../api/types';
+import type {
+  EscalationAssignmentDto,
+  EscalationPolicyDetailDto,
+  UserSummaryDto,
+} from '../api/types';
+
+/** A tier targets one of three things, and each reads differently to a person. */
+function describeAssignment(assignment: EscalationAssignmentDto) {
+  if (assignment.useOnCallSchedule) return 'Whoever is on call';
+  if (assignment.role != null) return `Everyone with the ${UserRoleLabel[assignment.role]} role`;
+  return assignment.userDisplayName ?? 'Unknown user';
+}
 
 export function EscalationPolicyDetail({ policyId, onChanged }: { policyId: string; onChanged: () => void }) {
   const [policy, setPolicy] = useState<EscalationPolicyDetailDto | null>(null);
@@ -10,6 +23,13 @@ export function EscalationPolicyDetail({ policyId, onChanged }: { policyId: stri
   const [error, setError] = useState<string | null>(null);
   const [assigningTierId, setAssigningTierId] = useState<string | null>(null);
   const [assigneeUserId, setAssigneeUserId] = useState('');
+  const [users, setUsers] = useState<UserSummaryDto[]>([]);
+
+  useEffect(() => {
+    listUsers()
+      .then(setUsers)
+      .catch(() => setError('Failed to load users.'));
+  }, []);
 
   function refresh() {
     getEscalationPolicy(policyId)
@@ -78,23 +98,29 @@ export function EscalationPolicyDetail({ policyId, onChanged }: { policyId: stri
             <ul>
               {tier.assignments.map((a) => (
                 <li key={a.id}>
-                  {a.useOnCallSchedule ? 'On-call schedule' : `User ${a.userId ?? a.role ?? 'unassigned'}`}
+                  {describeAssignment(a)}
+                  {a.userEmail && <span className="muted"> &lt;{a.userEmail}&gt;</span>}
                 </li>
               ))}
+              {tier.assignments.length === 0 && (
+                <li className="muted">Nobody — this tier will reach no one.</li>
+              )}
             </ul>
             {assigningTierId === tier.id ? (
               <div className="inline-form">
-                <input
+                <select
                   autoFocus
-                  placeholder="User ID (blank = on-call schedule)"
                   value={assigneeUserId}
                   onChange={(e) => setAssigneeUserId(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleAddAssignment(tier.id, assigneeUserId.trim());
-                    if (e.key === 'Escape') setAssigningTierId(null);
-                  }}
-                />
-                <button onClick={() => handleAddAssignment(tier.id, assigneeUserId.trim())}>Save</button>
+                >
+                  <option value="">Whoever is on call</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.displayName}
+                    </option>
+                  ))}
+                </select>
+                <button onClick={() => handleAddAssignment(tier.id, assigneeUserId)}>Save</button>
                 <button onClick={() => setAssigningTierId(null)}>Cancel</button>
               </div>
             ) : (
