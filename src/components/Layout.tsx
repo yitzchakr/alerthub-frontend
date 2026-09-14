@@ -2,7 +2,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export function Layout() {
-  const { user, logout } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
 
   return (
     <div className="app-shell">
@@ -11,6 +11,7 @@ export function Layout() {
           <NavLink to="/services">Services</NavLink>
           <NavLink to="/on-call">On-call</NavLink>
           <NavLink to="/escalation-policies">Escalation Policies</NavLink>
+          {isAdmin && <NavLink to="/staff">Staff</NavLink>}
         </nav>
         <div className="app-user">
           <span>{user?.email}</span>
