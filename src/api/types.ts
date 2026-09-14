@@ -14,17 +14,42 @@ export const IncidentStatus = {
 } as const;
 export type IncidentStatus = (typeof IncidentStatus)[keyof typeof IncidentStatus];
 
-export const UserRole = {
+/**
+ * What a user is allowed to do. This is the value behind the token's role claim and every
+ * authorization check on the API. It says nothing about who gets paged.
+ *
+ * Two values because two is what the API enforces: every check asks whether the caller is
+ * Admin. These are ordinals on the wire — the API has no JsonStringEnumConverter — so the
+ * numbering has to match the C# enum, and reordering is a breaking change.
+ */
+export const PermissionRole = {
   Admin: 0,
-  Responder: 1,
-  Viewer: 2,
+  Member: 1,
 } as const;
-export type UserRole = (typeof UserRole)[keyof typeof UserRole];
+export type PermissionRole = (typeof PermissionRole)[keyof typeof PermissionRole];
 
-export const UserRoleLabel: Record<UserRole, string> = {
-  [UserRole.Admin]: 'Admin',
-  [UserRole.Responder]: 'Responder',
-  [UserRole.Viewer]: 'Viewer',
+export const PermissionRoleLabel: Record<PermissionRole, string> = {
+  [PermissionRole.Admin]: 'Admin',
+  [PermissionRole.Member]: 'Member',
+};
+
+/**
+ * Which sweep pages a user when a tier targets a role rather than a named person. Separate
+ * from PermissionRole on purpose: the two used to be one field, so granting somebody Admin
+ * to let them edit a policy also silently added them to every tier that paged Admin.
+ *
+ * The two vocabularies share no value name, which is what keeps that confusion from coming
+ * back. Manager holds the ordinal the old Admin held.
+ */
+export const EscalationRole = {
+  Manager: 0,
+  Responder: 1,
+} as const;
+export type EscalationRole = (typeof EscalationRole)[keyof typeof EscalationRole];
+
+export const EscalationRoleLabel: Record<EscalationRole, string> = {
+  [EscalationRole.Manager]: 'Manager',
+  [EscalationRole.Responder]: 'Responder',
 };
 
 export const IncidentSeverityLabel: Record<IncidentSeverity, string> = {
@@ -117,7 +142,7 @@ export interface EscalationAssignmentDto {
   userId?: string | null;
   userDisplayName?: string | null;
   userEmail?: string | null;
-  role?: UserRole | null;
+  escalationRole?: EscalationRole | null;
   useOnCallSchedule: boolean;
 }
 
@@ -224,5 +249,8 @@ export interface UserSummaryDto {
   id: string;
   displayName: string;
   email: string;
-  role: UserRole;
+  permissionRole: PermissionRole;
+  escalationRole: EscalationRole;
+  /** Null while they are still staff. Set records a departure; users are never deleted. */
+  deactivatedAt: string | null;
 }

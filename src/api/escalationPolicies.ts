@@ -3,7 +3,7 @@ import type {
   EscalationPolicyDetailDto,
   EscalationPolicySummaryDto,
   EscalationTargetDto,
-  UserRole,
+  EscalationRole,
 } from './types';
 
 export function listEscalationPolicies() {
@@ -34,7 +34,7 @@ export function addTier(policyId: string, level: number, escalateAfterMinutes: n
 export function addAssignment(
   policyId: string,
   tierId: string,
-  assignment: { userId?: string; role?: UserRole; useOnCallSchedule: boolean },
+  assignment: { userId?: string; escalationRole?: EscalationRole; useOnCallSchedule: boolean },
 ) {
   return apiClient
     .post<{ assignmentId: string }>(
