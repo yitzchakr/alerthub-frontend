@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { addAssignment, addTier, getEscalationPolicy } from '../api/escalationPolicies';
 import { listUsers } from '../api/users';
-import { UserRoleLabel } from '../api/types';
+import { EscalationRoleLabel } from '../api/types';
 import type {
   EscalationAssignmentDto,
   EscalationPolicyDetailDto,
@@ -12,7 +12,8 @@ import type {
 /** A tier targets one of three things, and each reads differently to a person. */
 function describeAssignment(assignment: EscalationAssignmentDto) {
   if (assignment.useOnCallSchedule) return 'Whoever is on call';
-  if (assignment.role != null) return `Everyone with the ${UserRoleLabel[assignment.role]} role`;
+  if (assignment.escalationRole != null)
+    return `Everyone paged as ${EscalationRoleLabel[assignment.escalationRole]}`;
   return assignment.userDisplayName ?? 'Unknown user';
 }
 

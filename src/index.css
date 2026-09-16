@@ -319,3 +319,51 @@ a {
   align-items: center;
   gap: 6px;
 }
+
+/* --- staff --- */
+
+/*
+ * Three columns on purpose rather than auto-fit: it puts the identity fields on one row and
+ * the two roles side by side on the next. Letting them wrap apart separates the one pair
+ * this screen exists to have people compare.
+ */
+.staff-form {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  align-items: end;
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.staff-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.staff-form .hint {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 13px;
+}
+
+@media (max-width: 700px) {
+  .staff-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Counts of who each role sweep would actually reach; sits with the table it describes. */
+.coverage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 16px 0 8px;
+  font-size: 13px;
+}

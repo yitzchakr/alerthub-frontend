@@ -12,6 +12,12 @@ interface AuthUser {
 
 interface AuthContextValue {
   user: AuthUser | null;
+  /**
+   * Whether to show Admin-only screens. The claim comes from the token's permission role —
+   * not the escalation role, which decides paging and confers nothing. The API checks this
+   * independently on every request; this only decides what is worth rendering.
+   */
+  isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -32,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
+      isAdmin: user?.role === 'Admin',
       login: async (email, password) => {
         const tokens = await loginApi(email, password);
         tokenStorage.setTokens(tokens);
